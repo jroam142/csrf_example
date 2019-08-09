@@ -1,15 +1,19 @@
 import os
 import base64
+import random
 
-from flask import Flask, request
+from flask import Flask, request, session
 from model import Grade 
 
 app = Flask(__name__)
+app.secret_key = 'lsd0f98efl'
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
+    if session.get('csrf_token', None) == None:
+        session['csrf_token'] = str(random.randint(684, 11032))
 
-    if request.method == 'POST':
+    if request.method == 'POST' and request.form.get('csrf_token') == session.get('csrf_token'):
         g = Grade(
             student=request.form['student'],
             assignment=request.form['assignment'],
@@ -33,12 +37,13 @@ def home():
 
     <label for="grade">Grade</label>
     <input type="text" name="grade"><br>
+    <input type="hidden" name="csrf_token" value="{}">
 
     <input type="submit" value="Submit">
 </form>
 
 <h2>Existing Grades</h2>
-"""
+""".format(session.get('csrf_token'))
     
     for g in Grade.select():
         body += """
